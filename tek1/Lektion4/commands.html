@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaktionskommandoer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Source Sans 3', sans-serif;
+    background: #0f1923;
+    color: #e8e6e1;
+    overflow: hidden;
+  }
+
+  .slide {
+    width: 960px;
+    padding: 60px 70px;
+    position: relative;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 70px;
+    right: 70px;
+    height: 3px;
+    background: linear-gradient(90deg, #f0c040, #e8a025, #f0c040);
+    border-radius: 2px;
+  }
+
+  .header {
+    margin-bottom: 44px;
+    padding-top: 30px;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem;
+    color: #f0c040;
+  }
+
+  .header span {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: #8a9bae;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-top: 6px;
+  }
+
+  .commands {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .cmd {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    padding: 20px 28px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    transform: translateX(-16px);
+    animation: slideIn 0.5s ease forwards;
+  }
+
+  .cmd:nth-child(1) { animation-delay: 0.15s; }
+  .cmd:nth-child(2) { animation-delay: 0.25s; }
+  .cmd:nth-child(3) { animation-delay: 0.35s; }
+  .cmd:nth-child(4) { animation-delay: 0.45s; }
+  .cmd:nth-child(5) { animation-delay: 0.55s; }
+  .cmd:nth-child(6) { animation-delay: 0.65s; }
+  .cmd:nth-child(7) { animation-delay: 0.75s; }
+
+  @keyframes slideIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .cmd code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92rem;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .cmd:nth-child(1) code { color: #b0bec5; background: rgba(176, 190, 197, 0.08); }
+  .cmd:nth-child(2) code { color: #f0c040; background: rgba(240, 192, 64, 0.08); }
+  .cmd:nth-child(3) code { color: #81c784; background: rgba(129, 199, 132, 0.08); }
+  .cmd:nth-child(4) code { color: #ef9a9a; background: rgba(239, 154, 154, 0.08); }
+  .cmd:nth-child(5) code { color: #f0c040; background: rgba(240, 192, 64, 0.08); }
+  .cmd:nth-child(6) code { color: #4fc3f7; background: rgba(79, 195, 247, 0.08); }
+  .cmd:nth-child(7) code { color: #ce93d8; background: rgba(206, 147, 216, 0.08); }
+
+  .cmd .desc {
+    font-size: 0.95rem;
+    font-weight: 300;
+    line-height: 1.55;
+    color: #a0aab5;
+  }
+
+  .cmd .desc strong {
+    font-weight: 600;
+    color: #c8d0d8;
+  }
+
+  .flow {
+    margin-top: 36px;
+    padding: 22px 28px;
+    border-radius: 10px;
+    background: rgba(240, 192, 64, 0.04);
+    border: 1px solid rgba(240, 192, 64, 0.12);
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.9s forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .flow-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: #f0c040;
+    margin-bottom: 12px;
+  }
+
+  .flow-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #8a9bae;
+  }
+
+  .flow-code .keyword { color: #f0c040; }
+  .flow-code .success { color: #81c784; }
+  .flow-code .fail { color: #ef9a9a; }
+  .flow-code .reset { color: #ce93d8; }
+  .flow-code .comment { color: #4a5c6e; }
+
+  .footer {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 300;
+    color: #4a5568;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="header">
+    <h1>Transaktionskommandoer</h1>
+    <span>Java + SQL — det du skal bruge</span>
+  </div>
+
+  <div class="commands">
+
+    <div class="cmd">
+      <code>Connection connection = DriverManager.getConnection(url, user, pw)</code>
+      <div class="desc"><strong>Opret</strong> forbindelsen til databasen. Denne bruges til alle kommandoer herunder.</div>
+    </div>
+
+    <div class="cmd">
+      <code>connection.setAutoCommit(false)</code>
+      <div class="desc"><strong>Start</strong> en transaktion. Fortæl databasen: "jeg styrer selv hvornår ændringer gemmes."</div>
+    </div>
+
+    <div class="cmd">
+      <code>connection.commit()</code>
+      <div class="desc"><strong>Gem</strong> alle ændringer. Alt siden setAutoCommit(false) bliver permanent.</div>
+    </div>
+
+    <div class="cmd">
+      <code>connection.rollback()</code>
+      <div class="desc"><strong>Fortryd</strong> alle ændringer. Alt siden setAutoCommit(false) slettes, som om det aldrig skete.</div>
+    </div>
+
+    <div class="cmd">
+      <code>connection.setAutoCommit(true)</code>
+      <div class="desc"><strong>Nulstil</strong> til normalt. Hver SQL-sætning gemmes automatisk igen. Brug i <em>finally</em>.</div>
+    </div>
+
+    <div class="cmd">
+      <code>SELECT ... FOR UPDATE</code>
+      <div class="desc"><strong>Lås</strong> rækken. Andre transaktioner med FOR UPDATE må vente til du har lavet commit.</div>
+    </div>
+
+    <div class="cmd">
+      <code>BEGIN / COMMIT / ROLLBACK</code>
+      <div class="desc"><strong>Ren SQL</strong> — samme princip uden Java. BEGIN starter, COMMIT gemmer, ROLLBACK fortyder.</div>
+    </div>
+
+  </div>
+
+  <div class="flow">
+    <div class="flow-label">Typisk mønster</div>
+    <div class="flow-code">
+      <span class="keyword">connection.setAutoCommit(false)</span> <span class="comment">// start</span><br>
+      &nbsp;&nbsp;SELECT ... FOR UPDATE &nbsp;<span class="comment">// læs og lås</span><br>
+      &nbsp;&nbsp;UPDATE ... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// skriv</span><br>
+      <span class="success">connection.commit()</span> <span class="comment">// alt gik godt → gem</span><br>
+      <span class="fail">connection.rollback()</span> <span class="comment">// noget gik galt → fortryd</span><br>
+      <span class="reset">connection.setAutoCommit(true)</span> <span class="comment">// altid til sidst (finally)</span>
+    </div>
+  </div>
+
+  <div class="footer">Lektion 4 · Når flere vil det samme · Databasetransaktioner</div>
+</div>
+
+</body>
+</html>

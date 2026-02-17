@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACID – Transaktionsprincipper</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Source Sans 3', sans-serif;
+    background: #0f1923;
+    color: #e8e6e1;
+    overflow: hidden;
+  }
+
+  .slide {
+    width: 960px;
+    padding: 60px 70px;
+    position: relative;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 70px;
+    right: 70px;
+    height: 3px;
+    background: linear-gradient(90deg, #f0c040, #e8a025, #f0c040);
+    border-radius: 2px;
+  }
+
+  .header {
+    margin-bottom: 50px;
+    padding-top: 30px;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3.2rem;
+    letter-spacing: 0.15em;
+    color: #f0c040;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .header h1 span {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: #8a9bae;
+    text-transform: uppercase;
+  }
+
+  .principles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px 50px;
+  }
+
+  .principle {
+    position: relative;
+    padding: 28px 30px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .principle:nth-child(1) { animation-delay: 0.2s; }
+  .principle:nth-child(2) { animation-delay: 0.4s; }
+  .principle:nth-child(3) { animation-delay: 0.6s; }
+  .principle:nth-child(4) { animation-delay: 0.8s; }
+
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .principle .letter {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.8rem;
+    position: absolute;
+    top: -18px;
+    left: 24px;
+    line-height: 1;
+  }
+
+  .principle:nth-child(1) .letter { color: #f0c040; }
+  .principle:nth-child(2) .letter { color: #4fc3f7; }
+  .principle:nth-child(3) .letter { color: #81c784; }
+  .principle:nth-child(4) .letter { color: #ef9a9a; }
+
+  .principle h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    font-weight: normal;
+    margin-bottom: 10px;
+    margin-left: 36px;
+    color: #e8e6e1;
+  }
+
+  .principle p {
+    font-size: 0.95rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: #a0aab5;
+  }
+
+  .principle .example {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #c0c8d0;
+    padding-left: 14px;
+    border-left: 2px solid;
+  }
+
+  .principle:nth-child(1) .example { border-color: #f0c040; }
+  .principle:nth-child(2) .example { border-color: #4fc3f7; }
+  .principle:nth-child(3) .example { border-color: #81c784; }
+  .principle:nth-child(4) .example { border-color: #ef9a9a; }
+
+  .footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 300;
+    color: #4a5568;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="header">
+    <h1>ACID <span>De fire transaktionsprincipper</span></h1>
+  </div>
+
+  <div class="principles">
+
+    <div class="principle">
+      <div class="letter">A</div>
+      <h2>Atomicity</h2>
+      <p>Alt eller intet. Enten gennemføres alle operationer i transaktionen, eller også gennemføres ingen af dem.</p>
+      <div class="example">Overførsel: begge konti opdateres, eller ingen gør.</div>
+    </div>
+
+    <div class="principle">
+      <div class="letter">C</div>
+      <h2>Consistency</h2>
+      <p>Databasen går fra én gyldig tilstand til en anden. Data overholder altid de regler, der er sat op.</p>
+      <div class="example">Ingen penge forsvinder. Summen er altid den samme.</div>
+    </div>
+
+    <div class="principle">
+      <div class="letter">I</div>
+      <h2>Isolation</h2>
+      <p>Transaktioner forstyrrer ikke hinanden. Hver transaktion opfører sig som om den er den eneste.</p>
+      <div class="example">Sørg for, at kun en proces ad gangen kan lave ændringer. Andre må vente.</div>
+    </div>
+
+    <div class="principle">
+      <div class="letter">D</div>
+      <h2>Durability</h2>
+      <p>Når en transaktion er committed, er den gemt permanent. Selv ved strømsvigt bevares data.</p>
+      <div class="example">Databasen skriver til disk før den bekræfter commit.</div>
+    </div>
+
+  </div>
+
+  <div class="footer">Lektion 4 · Når flere vil det samme · Databasetransaktioner</div>
+</div>
+
+</body>
+</html>
