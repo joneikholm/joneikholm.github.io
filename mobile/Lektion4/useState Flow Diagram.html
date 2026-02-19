@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<!-- saved from url=(0101)https://www.chess.com/play/online/new?action=createLiveChallenge&base=180&timeIncrement=0&rated=rated -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>useState Flow Diagram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 28px 32px 20px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .code-ref {
+    display: inline-block;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 18px;
+    margin-top: 8px;
+  }
+
+  .code-ref code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    display: block;
+    text-align: left;
+  }
+
+  .kw { color: #c084fc; }
+  .fn { color: #67e8f9; }
+  .str { color: #86efac; }
+  .tag { color: #f472b6; }
+  .attr { color: #fbbf24; }
+  .var { color: #f8fafc; }
+
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .phase {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .phase::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .phase.first { flex: 1.05; }
+  .phase.event { flex: 0.85; }
+  .phase.render { flex: 1.15; }
+  .phase.memory { flex: 0.95; }
+
+  .phase.first::before { background: linear-gradient(90deg, #818cf8, #a78bfa); }
+  .phase.event::before { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .phase.render::before { background: linear-gradient(90deg, #34d399, #6ee7b7); }
+  .phase.memory::before { background: linear-gradient(90deg, #f472b6, #fb7185); }
+
+  .phase-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+
+  .phase.first .phase-title { color: #a78bfa; }
+  .phase.event .phase-title { color: #fbbf24; }
+  .phase.render .phase-title { color: #34d399; }
+  .phase.memory .phase-title { color: #f472b6; }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    position: relative;
+    top: 0px;
+  }
+
+  .phase.first .step-num { background: rgba(167,139,250,0.15); color: #a78bfa; }
+  .phase.event .step-num { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .phase.render .step-num { background: rgba(52,211,153,0.15); color: #34d399; }
+
+  .step-text {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+  }
+
+  .step-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: rgba(99, 102, 241, 0.12);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #c4b5fd;
+    white-space: nowrap;
+  }
+
+  .screen-mock {
+    background: #0f172a;
+    border: 1.5px solid #334155;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-top: 6px;
+    display: inline-block;
+  }
+
+  .screen-field {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #f8fafc;
+    min-width: 80px;
+    min-height: 16px;
+  }
+
+  .screen-field.empty { color: #475569; }
+
+  /* Arrow connectors between phases */
+  .arrow-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    position: relative;
+  }
+
+  .arrow-connector::before {
+    content: '';
+    width: 20px;
+    height: 2px;
+    background: #475569;
+  }
+
+  .arrow-connector::after {
+    content: '';
+    position: absolute;
+    right: 4px;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid #475569;
+  }
+
+  .arrow-connector .event-badge {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #fbbf24;
+    background: rgba(251,191,36,0.1);
+    border: 1px dashed rgba(251,191,36,0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .arrow-connector .event-badge .key-icon {
+    display: inline-block;
+    background: #fbbf24;
+    color: #0f172a;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 3px;
+    margin-right: 4px;
+    font-size: 0.6rem;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+
+  .repeat-badge {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.58rem;
+    color: #64748b;
+    font-style: italic;
+  }
+
+  /* Memory section specific */
+  .mem-description {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .mem-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mem-idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: #f472b6;
+    background: rgba(244,114,182,0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .mem-name {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+
+  .mem-vals {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .mem-val-step {
+    background: #0f172a;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid #334155;
+  }
+
+  .mem-arrow { color: #475569; font-size: 0.6rem; }
+  .dot { color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>How useState Works</h1>
+  <div class="code-ref">
+    <code><span class="kw">const</span> [<span class="var">text</span>, <span class="var">setText</span>] = <span class="fn">useState</span>(<span class="str">""</span>);&nbsp;&nbsp;&nbsp;<span class="tag">&lt;TextInput</span> <span class="attr">value</span>=<span class="str">{text}</span> <span class="attr">onChangeText</span>=<span class="str">{txt =&gt; setText(txt)}</span> <span class="tag">/&gt;</span></code>
+  </div>
+</div>
+
+<div class="flow-row">
+
+  <!-- FIRST RENDER -->
+  <div class="phase first">
+    <div class="phase-title">① First Render</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">React calls <code>App()</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><code>useState("")</code> → slot 0 empty → writes <code>""</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Returns <code>[text="", setText]</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">JSX: <code>&lt;TextInput value="" /&gt;</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">Screen:
+          <div class="screen-mock"><div class="screen-field empty">type here</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-connector">
+    <span class="event-badge"><span class="key-icon">H</span> press</span>
+  </div>
+
+  <!-- EVENT PHASE -->
+  <div class="phase event">
+    <div class="phase-title">② Event Phase</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Native fires <code>onChangeText("H")</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Callback → <code>setText("H")</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">React writes <code>"H"</code> to slot 0</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Component marked dirty, callback finishes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-connector">
+    <span class="repeat-badge">② → ③ repeats per keystroke</span>
+  </div>
+
+  <!-- RE-RENDER -->
+  <div class="phase render">
+    <div class="phase-title">③ Re-render</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">React calls <code>App()</code> again, cursor → 0</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><code>useState("")</code> → slot 0 exists → ignores <code>""</code> → reads <code>"H"</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Returns <code>[text="H", setText]</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">JSX: <code>&lt;TextInput value="H" /&gt;</code></div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">Diff → value changed → update native UI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-text">Screen:
+          <div class="screen-mock"><div class="screen-field">H</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-connector"></div>
+
+  <!-- INTERNAL ARRAY -->
+  <div class="phase memory">
+    <div class="phase-title">React's Internal Array</div>
+    <div class="steps">
+      <div class="mem-description">
+        This is the <strong style="color:#f472b6">only thing</strong> that survives between re-renders.<br>
+        Everything else in App() is rebuilt from scratch.
+      </div>
+      <div class="mem-row">
+        <div class="mem-idx">slot 0</div>
+        <div class="mem-name">text</div>
+      </div>
+      <div class="mem-vals" style="margin-top: 10px;">
+        <div class="mem-val-step">""</div>
+        <div class="mem-arrow">→</div>
+        <div class="mem-val-step">"H"</div>
+        <div class="mem-arrow">→</div>
+        <div class="mem-val-step">"He"</div>
+        <div class="mem-arrow">→</div>
+        <div class="mem-val-step">"Hel"</div>
+        <div class="mem-arrow">→</div>
+        <span class="dot">…</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+</body></html>
