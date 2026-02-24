@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Undringsspørgsmål — Gruppearbejde</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface-alt: #0f3460;
+    --accent: #e94560;
+    --accent-glow: rgba(233, 69, 96, 0.15);
+    --text: #e0e0e0;
+    --text-muted: #8a8a9a;
+    --text-bright: #ffffff;
+    --wire-on: #4fc3f7;
+    --wire-off: #37474f;
+    --border: rgba(255,255,255,0.06);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    padding: 4rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 50% 80%, rgba(233, 69, 96, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 20%, rgba(79, 195, 247, 0.05) 0%, transparent 50%);
+    z-index: 0;
+  }
+
+  .page-header > * { position: relative; z-index: 1; }
+
+  .page-header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header h1 span { color: var(--accent); }
+
+  .page-header .subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    font-style: italic;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  section {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.6rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.8rem;
+  }
+
+  p { margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 2rem;
+  }
+
+  .card-accent {
+    border-left: 3px solid var(--wire-on);
+  }
+
+  .card-warm {
+    border-left: 3px solid var(--accent);
+  }
+
+  .keyword {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.88em;
+    color: var(--wire-on);
+  }
+
+  /* Question cards */
+  .questions-grid {
+    display: grid;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .question-card {
+    background: rgba(0,0,0,0.25);
+    border-radius: 6px;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid var(--border);
+    transition: border-color 0.3s;
+  }
+
+  .question-card:hover {
+    border-color: rgba(79, 195, 247, 0.3);
+  }
+
+  .question-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .question-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.4rem;
+  }
+
+  .question-desc {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Steps */
+  .step {
+    display: flex;
+    gap: 1.2rem;
+    margin: 1.5rem 0;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    margin-top: 0.1rem;
+  }
+
+  .step-content {
+    flex: 1;
+  }
+
+  .step-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--wire-on);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.2rem;
+  }
+
+  .step-text {
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+
+  /* Time boxes */
+  .time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
+
+  .time-box {
+    background: rgba(0,0,0,0.25);
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .time-total {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--wire-on);
+    margin-bottom: 0.3rem;
+  }
+
+  .time-split {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .time-split span {
+    color: var(--text);
+  }
+
+  /* Rules */
+  .rule {
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    padding: 1rem 1.3rem;
+    margin: 0.6rem 0;
+    border-left: 3px solid var(--surface-alt);
+    font-size: 0.95rem;
+  }
+
+  .rule em {
+    color: var(--text-bright);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  /* Separator */
+  .separator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2.5rem 0;
+    opacity: 0.3;
+  }
+
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--wire-on), transparent);
+  }
+
+  .separator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--wire-on);
+  }
+
+  .footer-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 500px) {
+    .time-grid { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    body { background: white; color: #222; }
+    .card { border: 1px solid #ccc; }
+    .page-header h1 { color: #222; }
+    .page-header h1 span { color: #c0392b; }
+    .question-card { border: 1px solid #ccc; }
+    .time-box { border: 1px solid #ccc; }
+    .rule { background: #f8f8f8; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Undringsspørgsmål</h1>
+  <p class="subtitle">Gruppearbejde — vælg ét spørgsmål, undersøg det, og forklar det for klassen</p>
+</header>
+
+<main class="container">
+
+  <!-- INTRO -->
+  <section>
+    <div class="card card-accent">
+      <p>I har nu bygget logiske kredsløb og set, hvordan en computer regner med 0 og 1. Men der er stadig ting, der er mærkelige ved computere. Vi udforsker tre af dem.</p>
+    </div>
+  </section>
+
+  <!-- STEP 1: FORM GROUPS -->
+  <section>
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <div class="step-label">Dan grupper</div>
+        <div class="step-text">Find sammen i grupper på <span class="keyword">2–3 personer</span>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: PICK A QUESTION -->
+  <section>
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <div class="step-label">Vælg ét spørgsmål</div>
+        <div class="step-text">Jeres gruppe vælger <span class="keyword">ét</span> af de tre spørgsmål herunder. Vælg det, I er mest nysgerrige på.</div>
+      </div>
+    </div>
+
+    <div class="questions-grid">
+      <div class="question-card">
+        <div class="question-icon">⌨️</div>
+        <div class="question-title">Hvad sker der, når du trykker på en tast?</div>
+        <div class="question-desc">Følg rejsen fra finger til skærm. Hvad sker der fysisk? Elektrisk? I software? Hvor mange trin er der egentlig, fra du trykker til bogstavet dukker op?</div>
+      </div>
+
+      <div class="question-card">
+        <div class="question-icon">🧠</div>
+        <div class="question-title">Hvordan kan en maskine "huske" noget?</div>
+        <div class="question-desc">Hvad er forskellen på RAM og en harddisk? Hvordan kan et kredsløb holde fast i en værdi, selv efter signalet er væk? Hint: I har lige arbejdet med gates...</div>
+      </div>
+
+      <div class="question-card">
+        <div class="question-icon">💭</div>
+        <div class="question-title">Hvad er forskellen på at tænke og at beregne?</div>
+        <div class="question-desc">En lommeregner kan regne. ChatGPT kan skrive digte. Er det det samme som at tænke? Hvor går grænsen — og er der overhovedet en grænse?</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- STEP 3: STUDY -->
+  <section>
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <div class="step-label">Studiefase</div>
+        <div class="step-text">Undersøg jeres spørgsmål. <span class="keyword">Alle ressourcer er tilladte</span> — internettet, YouTube, ChatGPT, hinanden. I bestemmer selv, hvordan I angriber det. Målet er at kunne forklare jeres svar til klassen.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: PRESENT -->
+  <section>
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-content">
+        <div class="step-label">Præsentationsfase</div>
+        <div class="step-text">Hver gruppe præsenterer for klassen. I vælger selv formatet — tavletegning, demo, fortælling, diskussion. Ingen krav om slides.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- RULES -->
+  <section>
+    <h2>Vigtige regler</h2>
+
+    <div class="rule">
+      <em>Forklar med egne ord.</em> I skal ikke læse op — I skal kunne forklare det, som om I fortæller det til en ven.
+    </div>
+
+    <div class="rule">
+      <em>Det er okay ikke at vide alt.</em> Det er langt bedre at sige "det her forstod vi, og det her forstod vi ikke" end at fake det.
+    </div>
+
+    <div class="rule">
+      <em>Stil spørgsmål.</em> Efter hver præsentation må de andre grupper gerne stille spørgsmål. Det er en del af det.
+    </div>
+  </section>
+
+  <p class="footer-note">Teknologi 1 — Lektion 5: Undringsspørgsmål</p>
+
+</main>
+
+</body>
+</html>
