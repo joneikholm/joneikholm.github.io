@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logiske Gates — Fra kontakter til aritmetik</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface-alt: #0f3460;
+    --accent: #e94560;
+    --accent-glow: rgba(233, 69, 96, 0.15);
+    --text: #e0e0e0;
+    --text-muted: #8a8a9a;
+    --text-bright: #ffffff;
+    --wire-on: #4fc3f7;
+    --wire-off: #37474f;
+    --gate-fill: #263238;
+    --success: #66bb6a;
+    --border: rgba(255,255,255,0.06);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 50% 80%, rgba(233, 69, 96, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 20%, rgba(79, 195, 247, 0.05) 0%, transparent 50%);
+    z-index: 0;
+  }
+
+  .page-header > * { position: relative; z-index: 1; }
+
+  .page-header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header h1 span {
+    color: var(--accent);
+  }
+
+  .page-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    font-style: italic;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .circuit-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 1.5rem auto 0;
+    opacity: 0.4;
+  }
+
+  .circuit-line .node {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--wire-on);
+  }
+
+  .circuit-line .wire {
+    width: 60px;
+    height: 2px;
+    background: var(--wire-on);
+  }
+
+  .circuit-line .wire.off {
+    background: var(--wire-off);
+  }
+
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  .intro-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--wire-on);
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .intro-box strong {
+    color: var(--text);
+  }
+
+  /* Exercise blocks */
+  .exercise {
+    margin-bottom: 3.5rem;
+    position: relative;
+  }
+
+  .exercise-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .exercise-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+  }
+
+  .exercise-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.3;
+  }
+
+  .exercise-goal {
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--accent-glow);
+  }
+
+  .exercise-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+  }
+
+  .exercise-body p {
+    margin-bottom: 1rem;
+  }
+
+  .exercise-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .task {
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    border-left: 3px solid var(--surface-alt);
+  }
+
+  .task-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--wire-on);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem;
+  }
+
+  .task p {
+    margin-bottom: 0.6rem;
+  }
+
+  .task p:last-child {
+    margin-bottom: 0;
+  }
+
+  .hint {
+    background: var(--accent-glow);
+    border: 1px solid rgba(233, 69, 96, 0.2);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .hint::before {
+    content: '💡 ';
+  }
+
+  .dependency {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(79, 195, 247, 0.1);
+    border: 1px solid rgba(79, 195, 247, 0.2);
+    border-radius: 4px;
+    padding: 0.15rem 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--wire-on);
+    white-space: nowrap;
+  }
+
+  .dependency::before {
+    content: '←';
+    opacity: 0.5;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+  }
+
+  th {
+    background: rgba(0,0,0,0.3);
+    color: var(--wire-on);
+    font-weight: 600;
+    text-align: center;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+  }
+
+  td {
+    text-align: center;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  td.fill {
+    background: rgba(233, 69, 96, 0.07);
+    color: var(--text-muted);
+    font-style: italic;
+    min-width: 50px;
+  }
+
+  .gate-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--wire-on);
+    font-size: 0.95em;
+  }
+
+  .keyword {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.88em;
+    color: var(--wire-on);
+  }
+
+  .separator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 3rem 0;
+    opacity: 0.3;
+  }
+
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--wire-on), transparent);
+  }
+
+  .separator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--wire-on);
+  }
+
+  .progression-arrow {
+    display: block;
+    text-align: center;
+    margin: 2rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+  }
+
+  .progression-arrow::before {
+    content: '▼';
+    display: block;
+    font-size: 0.6rem;
+    margin-bottom: 0.2rem;
+    color: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+
+  .checklist li {
+    padding: 0.3rem 0 0.3rem 1.8rem;
+    position: relative;
+    margin-bottom: 0.3rem;
+  }
+
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+    font-size: 1.1em;
+  }
+
+  .diagram {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    background: rgba(0,0,0,0.3);
+    padding: 1.2rem 1.5rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-muted);
+  }
+
+  .footer-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .bonus-banner {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    padding: 0.8rem 1.5rem;
+    margin-bottom: 2.5rem;
+    background: var(--accent-glow);
+    border: 1px solid rgba(233, 69, 96, 0.2);
+    border-radius: var(--radius);
+  }
+
+  @media print {
+    body { background: white; color: #222; }
+    .exercise-body { border: 1px solid #ccc; }
+    .page-header { padding: 2rem 1rem; }
+    .page-header h1 { color: #222; }
+    .page-header h1 span { color: #c0392b; }
+    td.fill { background: #f5f5f5; }
+    .hint { background: #fff3e0; border-color: #ffe0b2; }
+    .task { background: #f8f8f8; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Logiske Gates<span>:</span> Fra kontakter til aritmetik</h1>
+  <p class="subtitle">5 øvelser i logic.ly — hver øvelse bygger videre på den forrige</p>
+  <div class="circuit-line">
+    <span class="node"></span>
+    <span class="wire"></span>
+    <span class="node"></span>
+    <span class="wire off"></span>
+    <span class="node"></span>
+    <span class="wire"></span>
+    <span class="node"></span>
+    <span class="wire off"></span>
+    <span class="node"></span>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="intro-box">
+    <strong>Sådan arbejder du med øvelserne:</strong> Hver øvelse afhænger af den forrige. Du skal lave dem i rækkefølge — de senere kredsløb genbruger det, du byggede tidligere. I hver øvelse forbinder du <strong>kontakter</strong> (switches) til dine gate-indgange og <strong>pærer</strong> (light bulbs) til dine udgange. Test alle mulige kombinationer af tændt/slukket, før du går videre.
+  </div>
+
+  <!-- ========== ØVELSE 1 ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Øvelse 1</span>
+    </div>
+    <h2 class="exercise-title">Lær de tre grundlæggende gates</h2>
+    <p class="exercise-goal">Forstå hvad AND, OR og NOT gør — de er byggestenene for alt, der følger.</p>
+
+    <div class="exercise-body">
+      <p>Åbn <strong>logic.ly</strong> og byg tre små kredsløb, ét ad gangen.</p>
+
+      <div class="task">
+        <div class="task-label">Opgave A — AND gate</div>
+        <p>Placér en <span class="gate-name">AND</span> gate. Forbind to kontakter til indgangene og en pære til udgangen.</p>
+        <p>Prøv alle fire kombinationer af de to kontakter. Udfyld sandhedstabellen:</p>
+        <table>
+          <tr><th>Kontakt A</th><th>Kontakt B</th><th>Pære</th></tr>
+          <tr><td>0</td><td>0</td><td class="fill">?</td></tr>
+          <tr><td>0</td><td>1</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>0</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>1</td><td class="fill">?</td></tr>
+        </table>
+        <p>Beskriv AND gatens regel i én sætning.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Opgave B — OR gate</div>
+        <p>Erstat AND gaten med en <span class="gate-name">OR</span> gate. Samme opsætning — to kontakter, én pære.</p>
+        <table>
+          <tr><th>Kontakt A</th><th>Kontakt B</th><th>Pære</th></tr>
+          <tr><td>0</td><td>0</td><td class="fill">?</td></tr>
+          <tr><td>0</td><td>1</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>0</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>1</td><td class="fill">?</td></tr>
+        </table>
+        <p>Beskriv OR gatens regel i én sætning.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Opgave C — NOT gate</div>
+        <p>Placér en <span class="gate-name">NOT</span> gate. Denne har kun <strong>én</strong> indgang. Forbind én kontakt og én pære.</p>
+        <table>
+          <tr><th>Kontakt A</th><th>Pære</th></tr>
+          <tr><td>0</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td class="fill">?</td></tr>
+        </table>
+        <p>Beskriv NOT gatens regel i én sætning.</p>
+      </div>
+
+      <div class="hint">Gem dine udfyldte sandhedstabeller — du får brug for dem i de næste øvelser.</div>
+    </div>
+  </article>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ========== ØVELSE 2 ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Øvelse 2</span>
+    </div>
+    <h2 class="exercise-title">Byg XOR af grundlæggende gates</h2>
+    <p class="exercise-goal">Kombinér gates fra Øvelse 1 for at skabe en ny, mere avanceret gate.</p>
+
+    <div class="exercise-body">
+      <p><span class="dependency">Kræver Øvelse 1</span></p>
+
+      <p>Dit mål: byg et kredsløb hvor pæren lyser, når <span class="keyword">præcis én</span> af de to kontakter er tændt — men <em>ikke</em> når begge er tændt, og <em>ikke</em> når begge er slukket. Denne opførsel kaldes <span class="gate-name">XOR</span> (eksklusiv or).</p>
+
+      <p>Her er sandhedstabellen, du sigter efter:</p>
+      <table>
+        <tr><th>A</th><th>B</th><th>Pære (XOR)</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>0</td><td>1</td><td>1</td></tr>
+        <tr><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>1</td><td>1</td><td>0</td></tr>
+      </table>
+
+      <div class="task">
+        <div class="task-label">Udfordringen</div>
+        <p>Byg dette kredsløb med <strong>kun</strong> de tre gate-typer fra Øvelse 1: AND, OR og NOT.</p>
+        <p>Du skal bruge præcis <strong>tre gates</strong> og en bestemt måde at forbinde dem på.</p>
+      </div>
+
+      <div class="hint">Tænk over det sådan: XOR er "A eller B, men ikke begge." Kig på dine sandhedstabeller fra Øvelse 1. Hvilken gate giver dig "A eller B"? Hvilken gate opdager "begge"? Hvordan kan NOT hjælpe dig med at kombinere de to idéer?</div>
+
+      <div class="task">
+        <div class="task-label">Verificér</div>
+        <p>Test alle fire input-kombinationer. Dit kredsløb skal matche XOR-sandhedstabellen ovenfor præcist. Hvis det ikke gør, tjek dine forbindelser, før du går videre.</p>
+      </div>
+    </div>
+  </article>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ========== ØVELSE 3 ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Øvelse 3</span>
+    </div>
+    <h2 class="exercise-title">Flertalsafstemning</h2>
+    <p class="exercise-goal">Design et kredsløb, der træffer en beslutning baseret på tre input.</p>
+
+    <div class="exercise-body">
+      <p><span class="dependency">Kræver Øvelse 1</span></p>
+
+      <p>Tre personer stemmer ja eller nej til et forslag. Hver person har en kontakt. Pæren skal lyse, hvis <span class="keyword">to eller flere</span> stemmer ja.</p>
+
+      <p>Her er sandhedstabellen. Udfyld output-kolonnen, <em>før</em> du begynder at bygge:</p>
+      <table>
+        <tr><th>A</th><th>B</th><th>C</th><th>Pære</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td><td class="fill">?</td></tr>
+        <tr><td>0</td><td>0</td><td>1</td><td class="fill">?</td></tr>
+        <tr><td>0</td><td>1</td><td>0</td><td class="fill">?</td></tr>
+        <tr><td>0</td><td>1</td><td>1</td><td class="fill">?</td></tr>
+        <tr><td>1</td><td>0</td><td>0</td><td class="fill">?</td></tr>
+        <tr><td>1</td><td>0</td><td>1</td><td class="fill">?</td></tr>
+        <tr><td>1</td><td>1</td><td>0</td><td class="fill">?</td></tr>
+        <tr><td>1</td><td>1</td><td>1</td><td class="fill">?</td></tr>
+      </table>
+
+      <div class="task">
+        <div class="task-label">Udfordringen</div>
+        <p>Byg et kredsløb med tre kontakter (A, B, C) og én pære, der implementerer flertalsafstemningen.</p>
+        <p>Tænk over det sådan: pæren lyser, når <em>mindst ét par</em> af stemmerne er "ja." Hvor mange forskellige par kan du danne af tre vælgere? Byg et del-kredsløb for hvert par, og kombinér derefter resultaterne.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Verificér</div>
+        <p>Test alle <strong>otte</strong> kombinationer. Dit kredsløb skal matche den sandhedstabel, du udfyldte ovenfor.</p>
+      </div>
+
+      <div class="hint">Du skal kun bruge to typer gates fra Øvelse 1 — ingen NOT gate er nødvendig.</div>
+    </div>
+  </article>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ========== ØVELSE 4 ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Øvelse 4</span>
+    </div>
+    <h2 class="exercise-title">Half Adder</h2>
+    <p class="exercise-goal">Få logiske gates til at lave aritmetik — læg to binære enkeltcifre sammen.</p>
+
+    <div class="exercise-body">
+      <p><span class="dependency">Kræver Øvelse 2</span></p>
+
+      <p>Når du lægger to binære enkeltcifre sammen, får resultatet to dele: en <span class="keyword">Sum</span> (ener-cifret) og en <span class="keyword">Carry</span> (toer-cifret). For eksempel: <code>1 + 1 = 10</code> i binært, altså Sum = 0 og Carry = 1.</p>
+
+      <div class="task">
+        <div class="task-label">Trin 1 — Tænk først</div>
+        <p>Udfyld denne sandhedstabel med binær addition — byg ikke noget endnu:</p>
+        <table>
+          <tr><th>A</th><th>B</th><th>Sum</th><th>Carry</th></tr>
+          <tr><td>0</td><td>0</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>0</td><td>1</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>0</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>1</td><td class="fill">?</td><td class="fill">?</td></tr>
+        </table>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Trin 2 — Genkend mønstre</div>
+        <p>Kig på <strong>Sum</strong>-kolonnen. Sammenlign den med en sandhedstabel, du allerede kender fra en tidligere øvelse. Hvilken gate producerer præcis dette mønster?</p>
+        <p>Kig nu på <strong>Carry</strong>-kolonnen. Hvilken gate fra Øvelse 1 producerer dette mønster?</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Trin 3 — Byg det</div>
+        <p>Byg et kredsløb med to kontakter (A og B) og <strong>to pærer</strong> — én mærket Sum og én mærket Carry. Brug de gates, du identificerede ovenfor.</p>
+        <p>Du må genbruge ledninger: begge gates kan læse fra de samme to kontakter.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Verificér</div>
+        <p>Test alle fire kombinationer. Begge udgange skal matche din sandhedstabel.</p>
+      </div>
+    </div>
+  </article>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ========== ØVELSE 5 ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Øvelse 5</span>
+    </div>
+    <h2 class="exercise-title">Full Adder</h2>
+    <p class="exercise-goal">Håndtér en carry fra en tidligere beregning — nøglen til at lægge større tal sammen.</p>
+
+    <div class="exercise-body">
+      <p><span class="dependency">Kræver Øvelse 4</span></p>
+
+      <p>En half adder kan lægge to bits sammen, men den kan ikke modtage en carry fra en tidligere beregning. En <span class="keyword">full adder</span> har tre indgange: A, B og <span class="keyword">Carry_in</span>. Den producerer stadig to udgange: Sum og Carry_out.</p>
+
+      <div class="task">
+        <div class="task-label">Trin 1 — Sandhedstabel</div>
+        <p>Udfyld full adderens sandhedstabel. For hver række skal du beregne A + B + Carry_in i binært:</p>
+        <table>
+          <tr><th>A</th><th>B</th><th>Carry_in</th><th>Sum</th><th>Carry_out</th></tr>
+          <tr><td>0</td><td>0</td><td>0</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>0</td><td>0</td><td>1</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>0</td><td>1</td><td>0</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>0</td><td>1</td><td>1</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>0</td><td>0</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>0</td><td>1</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>1</td><td>0</td><td class="fill">?</td><td class="fill">?</td></tr>
+          <tr><td>1</td><td>1</td><td>1</td><td class="fill">?</td><td class="fill">?</td></tr>
+        </table>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Trin 2 — Den vigtige indsigt</div>
+        <p>En full adder er bygget af <strong>to half addere</strong> og én OR gate. Tænk over det sådan:</p>
+        <p><strong>Half adder 1</strong> lægger A + B sammen. Dens Sum-udgang er et mellemresultat.</p>
+        <p><strong>Half adder 2</strong> lægger det mellemresultat sammen med Carry_in. Dens Sum-udgang er den <span class="keyword">endelige Sum</span>.</p>
+        <p>Hvad med carry-værdierne? Hver half adder producerer en Carry-udgang. Hvis <em>en af dem</em> genererede en carry, så har det samlede resultat en carry. Hvilken gate kombinerer to signaler, så udgangen er 1, hvis <em>mindst én</em> indgang er 1?</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Trin 3 — Byg det</div>
+        <p>Byg full adderen i logic.ly med <strong>tre kontakter</strong> (A, B, Carry_in) og <strong>to pærer</strong> (Sum, Carry_out).</p>
+        <p>Du skal bruge to komplette kopier af dit half adder-kredsløb fra Øvelse 4, forbundet i serie, plus én ekstra gate til den endelige carry.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Verificér</div>
+        <p>Test alle <strong>otte</strong> kombinationer. Hver række i din sandhedstabel skal stemme. Vær særligt opmærksom på tilfældet hvor A=0, B=0, Carry_in=1 — det er det tilfælde, der afslører fejl i simple designs.</p>
+      </div>
+
+      <div class="hint">Hvis du byggede XOR i Øvelse 2 af grundlæggende gates (OR, AND, NOT), vil din full adder have ret mange gates. Det er helt forventeligt. Det vigtige er, at den er bygget af to genkendelige half adder-blokke.</div>
+    </div>
+  </article>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ========== BONUS ========== -->
+
+  <div class="bonus-banner">★ Bonusøvelser — for dig, der er færdig med Øvelse 5</div>
+
+  <!-- ========== BONUS A ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Bonus A</span>
+    </div>
+    <h2 class="exercise-title">Vis resultatet som et tal</h2>
+    <p class="exercise-goal">Erstat pærerne med en digit-display, så dit kredsløb viser et rigtigt tal.</p>
+
+    <div class="exercise-body">
+      <p><span class="dependency">Kræver Øvelse 5</span></p>
+
+      <p>Lige nu viser din full adder resultatet som to pærer: Sum og Carry. Det virker, men det kræver, at man selv oversætter <code>1 0</code> til "det er 2." Det kan vi gøre bedre.</p>
+
+      <p>I logic.ly findes der en <span class="keyword">digit display</span> (også kaldet 7-segment display). Den kan vise et tal direkte, hvis man forbinder de rigtige signaler til den.</p>
+
+      <div class="task">
+        <div class="task-label">Udfordringen</div>
+        <p>Tag din full adder fra Øvelse 5. Fjern de to pærer (Sum og Carry_out) og erstat dem med en digit display.</p>
+        <p>Din full adder producerer to output-bits: Sum (position 0) og Carry_out (position 1). Forbind dem til de rigtige indgange på displayet, så det viser det korrekte tal (0, 1, 2 eller 3).</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Verificér</div>
+        <p>Test disse kombinationer og tjek, at displayet viser det rigtige tal:</p>
+        <table>
+          <tr><th>A</th><th>B</th><th>Carry_in</th><th>Forventet tal</th></tr>
+          <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>1</td><td>1</td><td>0</td><td>2</td></tr>
+          <tr><td>1</td><td>1</td><td>1</td><td>3</td></tr>
+        </table>
+      </div>
+
+      <div class="hint">Digit displayet i logic.ly har indgange for hver bit-position. Sum er bit 0 (ener-pladsen) og Carry_out er bit 1 (toer-pladsen). Undersøg displayets indgange — de er typisk nummereret.</div>
+    </div>
+  </article>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ========== BONUS B ========== -->
+  <article class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-number">Bonus B</span>
+    </div>
+    <h2 class="exercise-title">4-bit adder — læg større tal sammen</h2>
+    <p class="exercise-goal">Kæd fire full addere sammen og byg en regnemaskine, der kan lægge tal op til 15 sammen.</p>
+
+    <div class="exercise-body">
+      <p><span class="dependency">Kræver Øvelse 5 + Bonus A</span></p>
+
+      <p>Én full adder kan lægge to 1-bit tal sammen. Men hvad nu, hvis vi vil lægge <code>0101</code> + <code>0011</code> sammen (5 + 3)?</p>
+      <p>Tricket er at <span class="keyword">kæde full addere sammen</span>: Carry_out fra den første full adder bliver Carry_in til den næste. Præcis som når du lægger tal sammen med mente i hånden — du starter med ener-pladsen og fører mente videre til næste position.</p>
+
+      <div class="task">
+        <div class="task-label">Trin 1 — Forstå strukturen</div>
+        <p>En 4-bit adder har:</p>
+        <p>• <strong>8 kontakter</strong> — fire til det første tal (A3, A2, A1, A0) og fire til det andet (B3, B2, B1, B0).</p>
+        <p>• <strong>4 full addere</strong> kædet sammen, så Carry_out fra position 0 går til Carry_in på position 1, og så videre.</p>
+        <p>• <strong>5 output-bits</strong> — fire Sum-bits plus en endelig Carry_out (der fungerer som bit 4, i tilfælde af overflow).</p>
+        <p>Den første full adder (position 0) har Carry_in = 0, da der ikke er en tidligere beregning.</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Trin 2 — Byg det</div>
+        <p>Byg fire full addere i logic.ly og forbind dem i kæde. Brug digit displays til at vise resultatet.</p>
+        <p>Start med at bygge én full adder, der virker, og kopiér den derefter tre gange. Forbind carry-kæden fra højre mod venstre (position 0 → 1 → 2 → 3).</p>
+      </div>
+
+      <div class="task">
+        <div class="task-label">Verificér</div>
+        <p>Test med disse regnestykker:</p>
+        <table>
+          <tr><th>Tal A</th><th>Tal B</th><th>Binært A</th><th>Binært B</th><th>Forventet resultat</th></tr>
+          <tr><td>3</td><td>2</td><td>0011</td><td>0010</td><td>5 (00101)</td></tr>
+          <tr><td>5</td><td>3</td><td>0101</td><td>0011</td><td>8 (01000)</td></tr>
+          <tr><td>7</td><td>7</td><td>0111</td><td>0111</td><td>14 (01110)</td></tr>
+          <tr><td>15</td><td>1</td><td>1111</td><td>0001</td><td>16 (10000)</td></tr>
+        </table>
+        <p>Det sidste regnestykke er særligt interessant: 15 + 1 giver 16, som kræver en femte bit. Carry_out fra den sidste full adder bliver til bit 4. Hvad sker der i dit kredsløb?</p>
+      </div>
+
+      <div class="hint">Det bliver et stort kredsløb — og det er helt okay. Du har netop bygget det samme, som en rigtig ALU gør inde i en processor. Den eneste forskel er, at en rigtig CPU har milliarder af gates i stedet for nogle hundrede.</div>
+    </div>
+  </article>
+
+  <p class="footer-note">Teknologi 1 — Øvelser i logiske gates</p>
+
+</main>
+
+</body>
+</html>

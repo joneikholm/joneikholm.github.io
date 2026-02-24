@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fra sten til beregning — Introduktion til logiske gates</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface-alt: #0f3460;
+    --accent: #e94560;
+    --accent-glow: rgba(233, 69, 96, 0.15);
+    --text: #e0e0e0;
+    --text-muted: #8a8a9a;
+    --text-bright: #ffffff;
+    --wire-on: #4fc3f7;
+    --wire-off: #37474f;
+    --border: rgba(255,255,255,0.06);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    padding: 4rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 50% 80%, rgba(233, 69, 96, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 20%, rgba(79, 195, 247, 0.05) 0%, transparent 50%);
+    z-index: 0;
+  }
+
+  .page-header > * { position: relative; z-index: 1; }
+
+  .page-header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header h1 span { color: var(--accent); }
+
+  .page-header .subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    font-style: italic;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  section {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.6rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.8rem;
+  }
+
+  p { margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 2rem;
+  }
+
+  .card-accent {
+    border-left: 3px solid var(--wire-on);
+  }
+
+  .card-warm {
+    border-left: 3px solid var(--accent);
+  }
+
+  .keyword {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .gate-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--wire-on);
+    font-size: 0.95em;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.88em;
+    color: var(--wire-on);
+  }
+
+  /* Architecture diagram */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .arch-block {
+    background: rgba(0,0,0,0.25);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .arch-block:hover {
+    border-color: rgba(79, 195, 247, 0.3);
+  }
+
+  .arch-icon {
+    font-size: 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .arch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--wire-on);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.3rem;
+  }
+
+  .arch-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .arch-block.highlight {
+    border-color: var(--accent);
+    background: rgba(233, 69, 96, 0.06);
+  }
+
+  .arch-block.highlight .arch-label {
+    color: var(--accent);
+  }
+
+  /* Question callout */
+  .question {
+    background: rgba(233, 69, 96, 0.06);
+    border: 1px solid rgba(233, 69, 96, 0.15);
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--text);
+    text-align: center;
+  }
+
+  /* Binary display */
+  .binary-example {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    text-align: center;
+  }
+
+  .binary-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.4rem 0;
+  }
+
+  .bit {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .bit-on {
+    background: var(--wire-on);
+    color: var(--bg);
+  }
+
+  .bit-off {
+    background: var(--wire-off);
+    color: var(--text-muted);
+  }
+
+  .bit-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 0.2rem;
+  }
+
+  .binary-caption {
+    margin-top: 0.8rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* Addition example */
+  .addition-example {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 1.5rem 2rem;
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .addition-col {
+    text-align: center;
+  }
+
+  .addition-col .label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .addition-col .calc {
+    font-size: 1.1rem;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .addition-col .calc .result {
+    border-top: 2px solid var(--wire-on);
+    padding-top: 0.3rem;
+    color: var(--wire-on);
+  }
+
+  /* Journey / exercises overview */
+  .journey {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 1.5rem 0;
+  }
+
+  .journey-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    padding: 0.8rem 0;
+  }
+
+  .journey-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 32px;
+  }
+
+  .journey-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--surface-alt);
+    border: 2px solid var(--wire-on);
+    flex-shrink: 0;
+  }
+
+  .journey-dot.active {
+    background: var(--wire-on);
+    box-shadow: 0 0 8px rgba(79, 195, 247, 0.4);
+  }
+
+  .journey-line {
+    width: 2px;
+    flex: 1;
+    min-height: 20px;
+    background: var(--wire-off);
+    margin-top: 4px;
+  }
+
+  .journey-step:last-child .journey-line {
+    display: none;
+  }
+
+  .journey-content {
+    padding-top: 0;
+  }
+
+  .journey-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--wire-on);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.2rem;
+  }
+
+  .journey-text {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  /* Separator */
+  .separator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2.5rem 0;
+    opacity: 0.3;
+  }
+
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--wire-on), transparent);
+  }
+
+  .separator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--wire-on);
+  }
+
+  /* Transition arrow */
+  .transition {
+    text-align: center;
+    margin: 2rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .transition .arrow {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--wire-on);
+    margin-bottom: 0.3rem;
+    opacity: 0.5;
+  }
+
+  .footer-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 500px) {
+    .arch-grid { grid-template-columns: 1fr; }
+    .addition-example { gap: 1.5rem; }
+  }
+
+  @media print {
+    body { background: white; color: #222; }
+    .card { border: 1px solid #ccc; }
+    .page-header h1 { color: #222; }
+    .page-header h1 span { color: #c0392b; }
+    .bit-on { background: #333; color: white; }
+    .bit-off { background: #ddd; color: #666; }
+    .arch-block { border: 1px solid #ccc; }
+    .arch-block.highlight { border-color: #c0392b; background: #fef5f5; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Fra sten til beregning</h1>
+  <p class="subtitle">Hvordan kan sand og elektricitet lære at regne?</p>
+</header>
+
+<main class="container">
+
+  <!-- ===== PART 1: WHAT IS A COMPUTER ===== -->
+
+  <section>
+    <h2>Det store billede</h2>
+    <h3>Hvad skal en computer egentlig kunne?</h3>
+    <div class="card">
+      <p>Forestil dig, at du skal bygge en maskine, der kan følge instruktioner. Helt fra bunden. Hvad har du brug for?</p>
+      <p>Det viser sig, at svaret er overraskende simpelt. Uanset om det er en lommeregner fra 1970'erne eller en moderne smartphone, har enhver computer brug for de samme fire ting:</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="arch-grid">
+      <div class="arch-block highlight">
+        <div class="arch-icon">⚡</div>
+        <div class="arch-label">Beregning — CPU / ALU</div>
+        <div class="arch-desc">Et sted, der kan <em>regne</em>. Det er her, matematik og logik sker. ALU'en (Arithmetic Logic Unit) er den del af processoren, der udfører selve beregningerne.</div>
+      </div>
+
+      <div class="arch-block">
+        <div class="arch-icon">🧠</div>
+        <div class="arch-label">Hukommelse — RAM</div>
+        <div class="arch-desc">Et sted at <em>huske midlertidigt</em>. RAM holder de data, computeren arbejder med lige nu. Når strømmen slukkes, forsvinder indholdet.</div>
+      </div>
+
+      <div class="arch-block">
+        <div class="arch-icon">💾</div>
+        <div class="arch-label">Lager — SSD / Harddisk</div>
+        <div class="arch-desc">Et sted at <em>gemme permanent</em>. Dine filer, programmer og operativsystem ligger her — også når computeren er slukket.</div>
+      </div>
+
+      <div class="arch-block">
+        <div class="arch-icon">🔌</div>
+        <div class="arch-label">Input / Output</div>
+        <div class="arch-desc">En måde at <em>kommunikere</em> med omverdenen. Tastatur, mus og mikrofon er input. Skærm, højttalere og printer er output.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1rem;">
+      <p>Denne model blev beskrevet af matematikeren <span class="keyword">John von Neumann</span> i 1945 og kaldes Von Neumann-arkitekturen. Det bemærkelsesværdige er, at den stadig beskriver den computer, du sidder foran lige nu — over 80 år senere.</p>
+    </div>
+  </section>
+
+  <div class="transition">
+    <span class="arrow">↓</span>
+    men hvordan regner den?
+  </div>
+
+  <!-- ===== PART 2: ONLY 0 AND 1 ===== -->
+
+  <section>
+    <h2>Det mærkelige faktum</h2>
+    <h3>En computer forstår kun 0 og 1</h3>
+    <div class="card">
+      <p>Inde i en computer er der milliarder af bittesmå kontakter lavet af silicium — et materiale, der kommer fra sand. Hver kontakt kan kun være i to tilstande: der er strøm (<code>1</code>) eller der er ikke strøm (<code>0</code>).</p>
+      <p>Det lyder umuligt begrænset. Hvordan kan man bygge en regnemaskine, et spil, en hel verden ud af bare tændt og slukket?</p>
+      <p>Svaret starter med <span class="keyword">binære tal</span>. Vi er vant til at tælle med ti cifre (0–9). Computere tæller med to (0 og 1). Det virker, fordi man bare bruger flere positioner:</p>
+
+      <div class="binary-example">
+        <div class="binary-row">
+          <div>
+            <div class="bit bit-on">1</div>
+            <div class="bit-label">firer</div>
+          </div>
+          <div>
+            <div class="bit bit-off">0</div>
+            <div class="bit-label">toer</div>
+          </div>
+          <div>
+            <div class="bit bit-on">1</div>
+            <div class="bit-label">ener</div>
+          </div>
+        </div>
+        <p class="binary-caption">4 + 0 + 1 = 5</p>
+      </div>
+
+      <p>Hver position er enten tændt eller slukket. Præcis som en kontakt. Og ligesom man kan lægge decimale tal sammen med mente, kan man lægge binære tal sammen — med de rigtige kredsløb.</p>
+    </div>
+  </section>
+
+  <div class="question">Så ALU'en regner — men <em>hvordan</em> regner den, hvis den kun har kontakter?</div>
+
+  <!-- ===== PART 3: LOGIC GATES ===== -->
+
+  <section>
+    <h2>Svaret</h2>
+    <h3>Logiske gates — beslutninger lavet af kredsløb</h3>
+    <div class="card card-accent">
+      <p>En <span class="keyword">logisk gate</span> er en lille komponent, der tager én eller to input-signaler (<code>0</code> eller <code>1</code>) og producerer ét output-signal. Den træffer en simpel beslutning baseret på sine input.</p>
+      <p>Der er tre grundlæggende typer:</p>
+      <p><span class="gate-name">AND</span> — output er 1, kun hvis <em>begge</em> input er 1.</p>
+      <p><span class="gate-name">OR</span> — output er 1, hvis <em>mindst én</em> input er 1.</p>
+      <p><span class="gate-name">NOT</span> — vender signalet om. 1 bliver til 0, og 0 bliver til 1.</p>
+      <p>Det er alt. Tre simple regler. Men når man kombinerer dem, kan man bygge kredsløb, der lægger tal sammen. Se selv — her er <code>1 + 1</code> i binært:</p>
+
+      <div class="addition-example">
+        <div class="addition-col">
+          <div class="label">Binær addition</div>
+          <div class="calc">
+            <div>&nbsp;&nbsp;1</div>
+            <div>+ 1</div>
+            <div class="result">1 0</div>
+          </div>
+        </div>
+        <div class="addition-col">
+          <div class="label">Hvad det betyder</div>
+          <div class="calc">
+            <div style="color: var(--text-muted); font-size: 0.85rem; line-height: 2.2;">
+              <div>ener-cifret: <span style="color: var(--wire-on);">0</span></div>
+              <div>carry til næste position: <span style="color: var(--accent);">1</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>Ener-cifret og carry — det er præcis, hvad de rigtige logiske gates kan beregne. Og det er præcis det, I skal bygge i dag.</p>
+    </div>
+  </section>
+
+  <div class="separator"><span class="dot"></span></div>
+
+  <!-- ===== PART 4: TODAY'S EXERCISES ===== -->
+
+  <section>
+    <h2>Dagens øvelser</h2>
+    <h3>Fra simple gates til en regnemaskine</h3>
+    <div class="card card-warm">
+      <p>I dag skal I bygge kredsløb i <strong>logic.ly</strong> — trin for trin, fra det helt simple til et kredsløb, der kan lægge binære tal sammen. Hvert trin bygger videre på det forrige.</p>
+
+      <div class="journey">
+        <div class="journey-step">
+          <div class="journey-marker">
+            <div class="journey-dot active"></div>
+            <div class="journey-line"></div>
+          </div>
+          <div class="journey-content">
+            <div class="journey-label">Øvelse 1</div>
+            <div class="journey-text">Lær AND, OR og NOT at kende — én gate ad gangen.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-marker">
+            <div class="journey-dot"></div>
+            <div class="journey-line"></div>
+          </div>
+          <div class="journey-content">
+            <div class="journey-label">Øvelse 2</div>
+            <div class="journey-text">Kombinér de tre gates til en ny type: XOR.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-marker">
+            <div class="journey-dot"></div>
+            <div class="journey-line"></div>
+          </div>
+          <div class="journey-content">
+            <div class="journey-label">Øvelse 3</div>
+            <div class="journey-text">Byg et kredsløb, der afgør en flertalsafstemning.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-marker">
+            <div class="journey-dot"></div>
+            <div class="journey-line"></div>
+          </div>
+          <div class="journey-content">
+            <div class="journey-label">Øvelse 4</div>
+            <div class="journey-text">Byg en half adder — et kredsløb, der kan lægge to binære cifre sammen.</div>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-marker">
+            <div class="journey-dot"></div>
+            <div class="journey-line"></div>
+          </div>
+          <div class="journey-content">
+            <div class="journey-label">Øvelse 5</div>
+            <div class="journey-text">Byg en full adder — nu med carry fra en tidligere beregning.</div>
+          </div>
+        </div>
+      </div>
+
+      <p>Når I er færdige med Øvelse 5, har I bygget kernen af det, en ALU gør. Fra simple tændt/slukket-beslutninger til aritmetik — med ingenting andet end kontakter, ledninger og logiske gates.</p>
+    </div>
+  </section>
+
+  <p class="footer-note">Teknologi 1 — Lektion 6: Logiske gates</p>
+
+</main>
+
+</body>
+</html>
