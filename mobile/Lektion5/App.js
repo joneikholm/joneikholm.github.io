@@ -180,3 +180,15 @@ const styles = StyleSheet.create({
     backgroundColor:'orange'
   }
 });
+
+
+// EXPO 54 til app.json:
+    "expo": "~54.0.0",
+    "expo-image-picker": "~17.0.10",
+    "expo-status-bar": "~3.0.9",
+    "firebase": "^12.10.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-firebase-hooks": "^5.1.1",
+    "react-native": "0.81.5",
+    "react-native-web": "^0.21.0"
